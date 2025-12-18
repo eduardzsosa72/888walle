@@ -173,9 +173,22 @@
 </div>
 
 
+<?php
+// Verificar si el usuario ya está logueado
+session_start();
+$logged_in = false;
+$telegram_id = '';
+
+if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
+    $logged_in = true;
+    $telegram_id = $_SESSION['telegram_id'] ?? '';
+}
+?>
+
 <!-- ============================================================
                         LOGIN PRIVADO
 ============================================================ -->
+<?php if (!$logged_in): ?>
 <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
 
     <div class="login-card w-full max-w-sm rounded-2xl p-6">
@@ -224,11 +237,13 @@
     </div>
 
 </div>
+<?php endif; ?>
 
 <!-- ============================================================
                 CONTENIDO REAL DESPUÉS DEL LOGIN
-============================================================ -->
-<div id="appContent" class="hidden min-h-screen">
+============================================================ ?>
+<?php if ($logged_in): ?>
+<div id="appContent" class="min-h-screen">
 
     <div class="relative min-h-screen flex flex-col items-center justify-center p-4">
 
@@ -251,6 +266,7 @@
 
             <!-- Texto Bienvenidos con efecto de escritura -->
             <p id="welcomeText" class="mt-2 max-w-md text-base md:text-lg text-emerald-100">
+                <?php echo "Bienvenido, " . htmlspecialchars($telegram_id) . "! 🌟"; ?>
             </p>
 
             <!-- Tarjeta visual -->
@@ -347,11 +363,26 @@
 
     </div>
 </div>
+<?php endif; ?>
 
 <!-- ============================================================
                         SCRIPTS
 ============================================================ -->
 <script>
+<?php if ($logged_in): ?>
+// Si ya está logueado, mostrar directamente el contenido
+document.addEventListener('DOMContentLoaded', function() {
+    const loginScreen = document.getElementById("loginScreen");
+    const appContent = document.getElementById("appContent");
+    
+    if (loginScreen) loginScreen.style.display = "none";
+    if (appContent) {
+        appContent.classList.remove("hidden");
+        appContent.classList.add("app-enter");
+    }
+});
+<?php endif; ?>
+
 const loginScreen = document.getElementById("loginScreen");
 const appContent = document.getElementById("appContent");
 const loginForm = document.getElementById("loginForm");
@@ -447,68 +478,77 @@ document.addEventListener("click", (e) => {
     setTimeout(() => particle.remove(), 600);
 });
 
+<?php if (!$logged_in): ?>
 /* LOGIN PRIVADO - SIN PISTAS VISIBLES */
-loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const telegramId = loginTelegramId.value.trim();
-    const password = loginPassword.value.trim();
+        const telegramId = loginTelegramId.value.trim();
+        const password = loginPassword.value.trim();
 
-    if (!telegramId || !password) {
-        loginError.textContent = "Completa todos los campos";
-        loginError.classList.remove("hidden");
-        return;
-    }
-
-    try {
-        const res = await fetch("login.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                telegram_id: telegramId,
-                password: password
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            loginError.classList.add("hidden");
-            loginScreen.style.opacity = "0";
-
-            localStorage.setItem('userLoggedIn', 'true');
-            localStorage.setItem('telegramId', telegramId);
-            if (data.user) {
-                localStorage.setItem('userId', data.user.id);
-            }
-
-            setTimeout(() => {
-                loginScreen.classList.add("hidden");
-                appContent.classList.remove("hidden");
-                appContent.classList.add("app-enter");
-                startWelcomeTyping();
-            }, 500);
-
-        } else {
-            loginError.textContent = data.message || "Acceso denegado";
+        if (!telegramId || !password) {
+            loginError.textContent = "Completa todos los campos";
             loginError.classList.remove("hidden");
-            document.querySelector(".login-card").classList.add("shake");
-            setTimeout(() => {
-                document.querySelector(".login-card").classList.remove("shake");
-            }, 300);
+            return;
         }
 
-    } catch (error) {
-        console.error("Error en login:", error);
-        loginError.textContent = "Error de conexión";
-        loginError.classList.remove("hidden");
-    }
-});
+        try {
+            const res = await fetch("login.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    telegram_id: telegramId,
+                    password: password
+                })
+            });
 
+            const data = await res.json();
+
+            if (data.success) {
+                loginError.classList.add("hidden");
+                loginScreen.style.opacity = "0";
+
+                localStorage.setItem('userLoggedIn', 'true');
+                localStorage.setItem('telegramId', telegramId);
+                if (data.user) {
+                    localStorage.setItem('userId', data.user.id);
+                }
+
+                setTimeout(() => {
+                    loginScreen.classList.add("hidden");
+                    if (appContent) {
+                        appContent.classList.remove("hidden");
+                        appContent.classList.add("app-enter");
+                    }
+                    // Recargar la página para mostrar contenido PHP
+                    window.location.reload();
+                }, 500);
+
+            } else {
+                loginError.textContent = data.message || "Acceso denegado";
+                loginError.classList.remove("hidden");
+                document.querySelector(".login-card").classList.add("shake");
+                setTimeout(() => {
+                    document.querySelector(".login-card").classList.remove("shake");
+                }, 300);
+            }
+
+        } catch (error) {
+            console.error("Error en login:", error);
+            loginError.textContent = "Error de conexión";
+            loginError.classList.remove("hidden");
+        }
+    });
+}
+<?php endif; ?>
+
+<?php if ($logged_in): ?>
 function startWelcomeTyping() {
     const el = document.getElementById("welcomeText");
     if (!el) return;
-    const telegramId = localStorage.getItem('telegramId') || '';
+    const telegramId = "<?php echo htmlspecialchars($telegram_id); ?>";
+    const fullText = "Bienvenido, " + telegramId + "! 🌟 Tu espacio privado está listo.";
     let index = 0;
 
     function type() {
@@ -523,6 +563,10 @@ function startWelcomeTyping() {
     el.textContent = "";
     type();
 }
+
+// Iniciar efecto de escritura
+document.addEventListener('DOMContentLoaded', startWelcomeTyping);
+<?php endif; ?>
 
 /* SISTEMA DE TARJETAS (solo visual, sin guardar) */
 const addCardButton   = document.getElementById("addCardButton");
@@ -541,48 +585,60 @@ const cardDisplayCvv    = document.getElementById("cardDisplayCvv");
 
 const card = document.getElementById("card");
 
-addCardButton.addEventListener("click", () => cardForm.classList.toggle("hidden"));
+if (addCardButton && cardForm) {
+    addCardButton.addEventListener("click", () => cardForm.classList.toggle("hidden"));
 
-cardForm.addEventListener("submit", e => {
-    e.preventDefault();
+    cardForm.addEventListener("submit", e => {
+        e.preventDefault();
 
-    // Notificación
-    notification.classList.remove("hidden");
-    setTimeout(() => notification.classList.add("hidden"), 3000);
+        // Notificación
+        if (notification) {
+            notification.classList.remove("hidden");
+            setTimeout(() => notification.classList.add("hidden"), 3000);
+        }
 
-    // Ocultar formulario
-    cardForm.classList.add("hidden");
-});
+        // Ocultar formulario
+        cardForm.classList.add("hidden");
+    });
+}
 
 /* Inputs en vivo */
-cardNameInput.addEventListener("input", () =>
-    cardDisplayName.textContent = cardNameInput.value || "NOMBRE APELLIDO"
-);
+if (cardNameInput) {
+    cardNameInput.addEventListener("input", () =>
+        cardDisplayName.textContent = cardNameInput.value || "NOMBRE APELLIDO"
+    );
+}
 
-cardNumberInput.addEventListener("input", e => {
-    let v = e.target.value.replace(/\s/g, "");
-    v = v.replace(/(\d{4})/g, "$1 ").trim();
-    e.target.value = v;
-    cardDisplayNumber.textContent = v || "**** **** **** ****";
-});
+if (cardNumberInput) {
+    cardNumberInput.addEventListener("input", e => {
+        let v = e.target.value.replace(/\s/g, "");
+        v = v.replace(/(\d{4})/g, "$1 ").trim();
+        e.target.value = v;
+        cardDisplayNumber.textContent = v || "**** **** **** ****";
+    });
+}
 
-cardExpiryInput.addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "");
-    if (v.length > 2) v = v.slice(0,2) + "/" + v.slice(2,4);
-    e.target.value = v;
-    cardDisplayExpiry.textContent = v || "MM/YY";
-});
+if (cardExpiryInput) {
+    cardExpiryInput.addEventListener("input", e => {
+        let v = e.target.value.replace(/\D/g, "");
+        if (v.length > 2) v = v.slice(0,2) + "/" + v.slice(2,4);
+        e.target.value = v;
+        cardDisplayExpiry.textContent = v || "MM/YY";
+    });
+}
 
-cardCvvInput.addEventListener("input", () =>
-    cardDisplayCvv.textContent = cardCvvInput.value
-);
+if (cardCvvInput) {
+    cardCvvInput.addEventListener("input", () =>
+        cardDisplayCvv.textContent = cardCvvInput.value
+    );
 
-cardCvvInput.addEventListener("focus", () =>
-    card.classList.add("card-flipped")
-);
-cardCvvInput.addEventListener("blur", () =>
-    card.classList.remove("card-flipped")
-);
+    cardCvvInput.addEventListener("focus", () =>
+        card.classList.add("card-flipped")
+    );
+    cardCvvInput.addEventListener("blur", () =>
+        card.classList.remove("card-flipped")
+    );
+}
 
 /* Efecto 3D con el mouse en la tarjeta */
 const cardContainer = document.querySelector(".card-container");
