@@ -1,3 +1,0 @@
-INSERT INTO usuarios (telegram_id) VALUES 
-('1217257319'), 
-('1219534560');
