@@ -1,2 +1,0 @@
-# Archivo de usuarios
-888admin:admin888
