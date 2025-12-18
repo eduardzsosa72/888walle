@@ -1,3 +1,24 @@
+<?php
+// Iniciar sesión al principio del archivo
+session_start();
+
+// Verificar si el usuario ya está logueado
+$logged_in = false;
+$telegram_id = '';
+$user_name = '';
+
+if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
+    $logged_in = true;
+    $telegram_id = $_SESSION['telegram_id'] ?? '';
+    $user_name = $_SESSION['user_name'] ?? $telegram_id;
+}
+
+// Si está logueado, redirigir automáticamente al contenido
+if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
+    // Ya está en el contenido, no hacer nada
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -14,6 +35,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
     <style>
+        /* (Todos los estilos se mantienen igual) */
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -151,6 +173,11 @@
             opacity: 0;
             pointer-events: none;
         }
+        
+        /* Clase para ocultar elementos */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -172,32 +199,17 @@
     </div>
 </div>
 
-
-<?php
-// Verificar si el usuario ya está logueado
-session_start();
-$logged_in = false;
-$telegram_id = '';
-
-if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
-    $logged_in = true;
-    $telegram_id = $_SESSION['telegram_id'] ?? '';
-}
-?>
-
+<?php if (!$logged_in): ?>
 <!-- ============================================================
                         LOGIN PRIVADO
 ============================================================ -->
-<?php if (!$logged_in): ?>
 <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
-
     <div class="login-card w-full max-w-sm rounded-2xl p-6">
-
        <div class="flex justify-center mb-4">
-    <img src="logo.png.jpg"
-         alt="888 Carding"
-         class="w-24 h-24 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]">
-</div>
+            <img src="logo.png.jpg"
+                 alt="888 Carding"
+                 class="w-24 h-24 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]">
+        </div>
 
         <p class="text-center text-emerald-200 text-sm mt-1">Acceso exclusivo</p>
 
@@ -233,20 +245,14 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
         <p class="text-center text-emerald-300 text-xs mt-4">
             Acceso privado @Macrzz6 🌌
         </p>
-
     </div>
-
 </div>
-<?php endif; ?>
-
+<?php else: ?>
 <!-- ============================================================
                 CONTENIDO REAL DESPUÉS DEL LOGIN
-============================================================ ?>
-<?php if ($logged_in): ?>
+============================================================ -->
 <div id="appContent" class="min-h-screen">
-
     <div class="relative min-h-screen flex flex-col items-center justify-center p-4">
-
         <!-- Notificación -->
         <div id="notification" class="hidden fixed top-5 z-40 w-full max-w-sm">
             <div class="flex items-center bg-emerald-900/70 border border-emerald-500 rounded-xl p-4 shadow-lg">
@@ -256,28 +262,24 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
         </div>
 
         <main class="relative z-10 text-center flex flex-col items-center w-full">
+            <div class="flex flex-col items-center mb-6">
+                <img src="logo.png.jpg"
+                     alt="888 Carding"
+                     class="w-28 h-28 drop-shadow-[0_0_30px_rgba(34,197,94,0.9)]">
+            </div>
 
-         <div class="flex flex-col items-center mb-6">
-    <img src="logo.png.jpg"
-         alt="888 Carding"
-         class="w-28 h-28 drop-shadow-[0_0_30px_rgba(34,197,94,0.9)]">
-</div>
-
-
-            <!-- Texto Bienvenidos con efecto de escritura -->
+            <!-- Texto Bienvenidos -->
             <p id="welcomeText" class="mt-2 max-w-md text-base md:text-lg text-emerald-100">
-                <?php echo "Bienvenido, " . htmlspecialchars($telegram_id) . "! 🌟"; ?>
+                Bienvenido, <?php echo htmlspecialchars($user_name); ?>! 🌟 Tu espacio privado está listo.
             </p>
 
             <!-- Tarjeta visual -->
             <div class="mt-8 w-full max-w-sm card-container">
                 <div id="card" class="relative aspect-[1.586/1] w-full rounded-xl">
                     <div id="cardInner" class="card-inner">
-
                         <!-- Frente -->
                         <div class="card-front bg-[#022c22] rounded-xl shadow-2xl border border-emerald-500 p-6 flex flex-col justify-between">
                             <span class="font-bold text-xl text-white">TARJETA</span>
-
                             <div class="text-left mt-6">
                                 <p id="cardDisplayNumber" class="font-mono text-xl tracking-wider text-white">
                                     **** **** **** ****
@@ -305,7 +307,6 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -321,6 +322,14 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                class="mt-4 inline-block px-8 py-3 bg-blue-400 text-gray-900 font-bold rounded-xl text-lg btn-glow">
                 Actualizar CC
             </a>
+
+            <!-- Botón Cerrar Sesión -->
+            <form method="POST" action="logout.php" class="mt-4">
+                <button type="submit"
+                        class="px-6 py-2 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition">
+                    Cerrar Sesión
+            </button>
+            </form>
 
             <!-- Formulario (solo visual) -->
             <form id="cardForm" class="hidden w-full max-w-md mt-8">
@@ -358,9 +367,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                     </button>
                 </div>
             </form>
-
         </main>
-
     </div>
 </div>
 <?php endif; ?>
@@ -370,14 +377,19 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
 ============================================================ -->
 <script>
 <?php if ($logged_in): ?>
-// Si ya está logueado, mostrar directamente el contenido
+// Si ya está logueado, ocultar splash inmediatamente
 document.addEventListener('DOMContentLoaded', function() {
-    const loginScreen = document.getElementById("loginScreen");
-    const appContent = document.getElementById("appContent");
+    const splash = document.getElementById("splashScreen");
+    if (splash) {
+        splash.classList.add("splash-hide");
+        setTimeout(() => {
+            splash.style.display = "none";
+        }, 100);
+    }
     
-    if (loginScreen) loginScreen.style.display = "none";
+    // Aplicar animación de entrada
+    const appContent = document.getElementById("appContent");
     if (appContent) {
-        appContent.classList.remove("hidden");
         appContent.classList.add("app-enter");
     }
 });
@@ -479,7 +491,7 @@ document.addEventListener("click", (e) => {
 });
 
 <?php if (!$logged_in): ?>
-/* LOGIN PRIVADO - SIN PISTAS VISIBLES */
+/* LOGIN PRIVADO */
 if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -507,31 +519,19 @@ if (loginForm) {
 
             if (data.success) {
                 loginError.classList.add("hidden");
-                loginScreen.style.opacity = "0";
-
-                localStorage.setItem('userLoggedIn', 'true');
-                localStorage.setItem('telegramId', telegramId);
-                if (data.user) {
-                    localStorage.setItem('userId', data.user.id);
-                }
-
-                setTimeout(() => {
-                    loginScreen.classList.add("hidden");
-                    if (appContent) {
-                        appContent.classList.remove("hidden");
-                        appContent.classList.add("app-enter");
-                    }
-                    // Recargar la página para mostrar contenido PHP
-                    window.location.reload();
-                }, 500);
-
+                
+                // Recargar la página completa para que PHP detecte la sesión
+                window.location.reload();
+                
             } else {
                 loginError.textContent = data.message || "Acceso denegado";
                 loginError.classList.remove("hidden");
-                document.querySelector(".login-card").classList.add("shake");
-                setTimeout(() => {
-                    document.querySelector(".login-card").classList.remove("shake");
-                }, 300);
+                if (document.querySelector(".login-card")) {
+                    document.querySelector(".login-card").classList.add("shake");
+                    setTimeout(() => {
+                        document.querySelector(".login-card").classList.remove("shake");
+                    }, 300);
+                }
             }
 
         } catch (error) {
@@ -543,45 +543,20 @@ if (loginForm) {
 }
 <?php endif; ?>
 
-<?php if ($logged_in): ?>
-function startWelcomeTyping() {
-    const el = document.getElementById("welcomeText");
-    if (!el) return;
-    const telegramId = "<?php echo htmlspecialchars($telegram_id); ?>";
-    const fullText = "Bienvenido, " + telegramId + "! 🌟 Tu espacio privado está listo.";
-    let index = 0;
-
-    function type() {
-        if (index <= fullText.length) {
-            const visible = fullText.slice(0, index);
-            const cursor = index < fullText.length ? "▌" : "";
-            el.textContent = visible + cursor;
-            index++;
-            setTimeout(type, 120);
-        }
-    }
-    el.textContent = "";
-    type();
-}
-
-// Iniciar efecto de escritura
-document.addEventListener('DOMContentLoaded', startWelcomeTyping);
-<?php endif; ?>
-
 /* SISTEMA DE TARJETAS (solo visual, sin guardar) */
-const addCardButton   = document.getElementById("addCardButton");
-const cardForm        = document.getElementById("cardForm");
-const notification    = document.getElementById("notification");
+const addCardButton = document.getElementById("addCardButton");
+const cardForm = document.getElementById("cardForm");
+const notification = document.getElementById("notification");
 
-const cardNameInput   = document.getElementById("cardName");
+const cardNameInput = document.getElementById("cardName");
 const cardNumberInput = document.getElementById("cardNumber");
 const cardExpiryInput = document.getElementById("cardExpiry");
-const cardCvvInput    = document.getElementById("cardCvv");
+const cardCvvInput = document.getElementById("cardCvv");
 
-const cardDisplayName   = document.getElementById("cardDisplayName");
+const cardDisplayName = document.getElementById("cardDisplayName");
 const cardDisplayNumber = document.getElementById("cardDisplayNumber");
 const cardDisplayExpiry = document.getElementById("cardDisplayExpiry");
-const cardDisplayCvv    = document.getElementById("cardDisplayCvv");
+const cardDisplayCvv = document.getElementById("cardDisplayCvv");
 
 const card = document.getElementById("card");
 
