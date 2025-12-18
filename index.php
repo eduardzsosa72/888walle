@@ -270,7 +270,6 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
 
             <!-- Texto Bienvenidos -->
             <p id="welcomeText" class="mt-2 max-w-md text-base md:text-lg text-emerald-100">
-                Bienvenido, <?php echo htmlspecialchars($user_name); ?>! 🌟 Tu espacio privado está listo.
             </p>
 
             <!-- Tarjeta visual -->
