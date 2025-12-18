@@ -1,4 +1,3 @@
-@ -1,38 +0,0 @@
 #!/bin/bash
 
 echo "=== ACTUALIZANDO SISTEMA ==="
@@ -27,7 +26,7 @@ git clone https://github.com/eduardzsosa72/888walle.git
 
 echo "=== MOVER ARCHIVOS AL SERVIDOR APACHE ==="
 sudo rm -rf /var/www/html/*
-sudo cp -r mi-web/* /var/www/html/
+sudo cp -r 888walle/* /var/www/html/
 
 echo "=== AJUSTANDO PERMISOS ==="
 sudo chown -R www-data:www-data /var/www/html
@@ -36,4 +35,12 @@ sudo chmod -R 755 /var/www/html
 echo "=== REINICIANDO APACHE ==="
 sudo systemctl restart apache2
 
-echo "=== LISTO!! Tu sitio está funcionando en http://localhost ==="
+echo "=== IP DEL SERVIDOR ==="
+IP_LOCAL=$(hostname -I | awk '{print $1}')
+echo "🌐 Sitio disponible en (IP local): http://$IP_LOCAL"
+
+echo "=== IP PUBLICA (si es VPS) ==="
+IP_PUBLICA=$(curl -s ifconfig.me)
+echo "🌍 IP pública: http://$IP_PUBLICA"
+
+echo "=== LISTO!! ==="
