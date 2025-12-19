@@ -1,12 +1,12 @@
 <?php
 // ============================================
-// BOT DE REGISTRO 888WALLET - COMPLETO
+// BOT DE REGISTRO 888WALLET - COMPLETO Y CORREGIDO
 // ============================================
 
 // CONFIGURACIÓN - REEMPLAZA CON TUS DATOS
 define('BOT_TOKEN', '7969207140:AAGAxpi-uWlAGhqL294f0F_Hk_T6RGSv4Ng');
 define('ADMIN_CHAT_ID', '6319087504'); // Tu Chat ID
-define('DOMINIO', 'https://888wallet.vpskraker.shop/'); // Cambia por tu dominio real
+define('DOMINIO', 'https://888wallet.vpskraker.shop/index.php'); // Cambia por tu dominio real
 define('DB_HOST', 'gokucheker.ceheeiow0knm.us-east-1.rds.amazonaws.com');
 define('DB_NAME', '888wallet_db');
 define('DB_USER', 'admin');
@@ -406,12 +406,12 @@ function aprobarUsuario($user_id) {
         
         if ($usuario_existente) {
             // Actualizar usuario existente
-            $stmt = $pdo->prepare("UPDATE usuarios SET activo = 1, nombre = ? WHERE telegram_id = ?");
-            $stmt->execute([$solicitud['nombre'], $user_id]);
+            $stmt = $pdo->prepare("UPDATE usuarios SET activo = 1, nombre = ?, username = ? WHERE telegram_id = ?");
+            $stmt->execute([$solicitud['nombre'], $solicitud['username'], $user_id]);
             
             $accion = "reactivado";
         } else {
-            // Crear nuevo usuario
+            // Crear nuevo usuario (CORREGIDO - CON username)
             $stmt = $pdo->prepare("INSERT INTO usuarios (telegram_id, username, nombre, activo, fecha_registro) 
                                   VALUES (?, ?, ?, 1, NOW())");
             $stmt->execute([$solicitud['telegram_id'], $solicitud['username'], $solicitud['nombre']]);
