@@ -6,7 +6,7 @@
 // CONFIGURACIÓN - REEMPLAZA CON TUS DATOS
 define('BOT_TOKEN', '7969207140:AAGAxpi-uWlAGhqL294f0F_Hk_T6RGSv4Ng');
 define('ADMIN_CHAT_ID', '6319087504'); // Tu Chat ID
-define('DOMINIO', 'https://888wallet.vpskraker.shop/index.php'); // Cambia por tu dominio real
+define('DOMINIO', 'https://888wallet.vpskraker.shop/'); // Cambia por tu dominio real
 define('DB_HOST', 'gokucheker.ceheeiow0knm.us-east-1.rds.amazonaws.com');
 define('DB_NAME', '888wallet_db');
 define('DB_USER', 'admin');
