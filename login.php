@@ -83,7 +83,7 @@ if (!empty($telegram_id) && !empty($password_input) && empty($verification_code)
         $telegram_message .= "_Este código expira en 5 minutos_";
         
         // Enviar mensaje a Telegram
-        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
+        sendTelegramMessage(telegram_id, $telegram_message);
         
         echo json_encode([
             "success" => true,
@@ -145,7 +145,7 @@ if (!empty($verification_code) && isset($_SESSION['verification_temp'])) {
         $telegram_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
         $telegram_message .= "🔒 Estado: ACCESO PERMITIDO";
         
-        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
+        sendTelegramMessage(telegram_id, $telegram_message);
         
         echo json_encode([
             "success" => true,
