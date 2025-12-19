@@ -1,5 +1,4 @@
 <?php
-// Iniciar sesión al principio del archivo
 session_start();
 
 // Verificar si el usuario ya está logueado
@@ -11,11 +10,6 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
     $logged_in = true;
     $telegram_id = $_SESSION['telegram_id'] ?? '';
     $user_name = $_SESSION['user_name'] ?? $telegram_id;
-}
-
-// Si está logueado, redirigir automáticamente al contenido
-if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
-    // Ya está en el contenido, no hacer nada
 }
 ?>
 
@@ -35,7 +29,6 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* (Todos los estilos se mantienen igual) */
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -147,12 +140,6 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
             transition: opacity 0.6s ease;
         }
 
-        #splashLogo {
-            font-size: 3rem;
-            font-weight: 900;
-            letter-spacing: -0.05em;
-        }
-
         .splash-sub {
             margin-top: 0.5rem;
             font-size: 0.875rem;
@@ -178,6 +165,41 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
         .hidden {
             display: none !important;
         }
+        
+        /* Animación para códigos */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Estilo para el contador */
+        .countdown {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        /* Loading spinner */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -201,49 +223,96 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
 
 <?php if (!$logged_in): ?>
 <!-- ============================================================
-                        LOGIN PRIVADO
+                        LOGIN PRIVADO CON 2 PASOS
 ============================================================ -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
-    <div class="login-card w-full max-w-sm rounded-2xl p-6">
+    <div class="login-card w-full max-w-md rounded-2xl p-6">
        <div class="flex justify-center mb-4">
             <img src="logo.png.jpg"
                  alt="888 Carding"
                  class="w-24 h-24 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]">
         </div>
 
-        <p class="text-center text-emerald-200 text-sm mt-1">Acceso exclusivo</p>
+        <!-- PASO 1: Credenciales -->
+        <div id="step1" class="step">
+            <p class="text-center text-emerald-200 text-sm mt-1">Acceso exclusivo - Paso 1 de 2</p>
+            <p class="text-center text-emerald-300 text-xs mb-6">Verificación por Telegram requerida</p>
+            
+            <form id="loginForm" class="mt-4 space-y-4">
+                <div>
+                    <label class="text-sm text-emerald-200">ID de Telegram</label>
+                    <input id="loginTelegramId" type="text"
+                           class="mt-1 w-full bg-[#02141c] border border-emerald-500 rounded-md px-3 py-3 text-white"
+                           placeholder="@username o número"
+                           autocomplete="off"
+                           required>
+                </div>
 
-        <form id="loginForm" class="mt-6 space-y-4">
-            <div>
-                <label class="text-sm text-emerald-200">ID de Telegram</label>
-                <input id="loginTelegramId" type="text"
-                       class="mt-1 w-full bg-[#02141c] border border-emerald-500 rounded-md px-3 py-2 text-white"
-                       placeholder=""
-                       autocomplete="off"
-                       required>
-            </div>
+                <div>
+                    <label class="text-sm text-emerald-200">Contraseña</label>
+                    <input id="loginPassword" type="password"
+                           class="mt-1 w-full bg-[#02141c] border border-emerald-500 rounded-md px-3 py-3 text-white"
+                           placeholder="••••••••"
+                           autocomplete="off"
+                           required>
+                </div>
 
-            <div>
-                <label class="text-sm text-emerald-200">Contraseña</label>
-                <input id="loginPassword" type="password"
-                       class="mt-1 w-full bg-[#02141c] border border-emerald-500 rounded-md px-3 py-2 text-white"
-                       placeholder=""
-                       autocomplete="off"
-                       required>
-            </div>
+                <p id="loginError" class="text-sm text-red-400 hidden text-center py-2">
+                    Acceso denegado
+                </p>
 
-            <p id="loginError" class="text-sm text-red-400 hidden text-center">
-                Acceso denegado
-            </p>
+                <button type="submit"
+                        class="w-full bg-emerald-400 text-gray-900 font-bold py-3 rounded-xl btn-glow hover:bg-emerald-500 transition flex items-center justify-center">
+                    <span id="loginBtnText">🔐 Verificar Credenciales</span>
+                    <div id="loginLoader" class="loader hidden"></div>
+                </button>
+            </form>
+        </div>
 
-            <button type="submit"
-                    class="w-full bg-emerald-400 text-gray-900 font-bold py-2 rounded-xl btn-glow">
-                Acceder
-            </button>
-        </form>
+        <!-- PASO 2: Código de verificación -->
+        <div id="step2" class="step hidden">
+            <p class="text-center text-emerald-200 text-sm mt-1">Verificación de seguridad - Paso 2 de 2</p>
+            <p class="text-center text-emerald-100 text-xs mb-2" id="verificationInfo"></p>
+            <p class="text-center text-emerald-300 text-xs mb-6 pulse-animation">📱 Revisa tu Telegram</p>
+            
+            <form id="verificationForm" class="mt-4 space-y-4">
+                <div>
+                    <label class="text-sm text-emerald-200">Código de 6 dígitos</label>
+                    <input id="verificationCode" type="text" maxlength="6"
+                           class="mt-1 w-full bg-[#02141c] border border-emerald-500 rounded-md px-3 py-3 text-center text-2xl tracking-widest font-mono"
+                           placeholder="123456"
+                           autocomplete="off"
+                           required>
+                    <p class="text-xs text-emerald-300 mt-2">
+                        ⏳ El código expira en 5 minutos
+                    </p>
+                </div>
 
-        <p class="text-center text-emerald-300 text-xs mt-4">
-            Acceso privado @Macrzz6 🌌
+                <p id="verificationError" class="text-sm text-red-400 hidden text-center py-2">
+                    Código incorrecto
+                </p>
+
+                <div class="flex space-x-3">
+                    <button type="submit"
+                            class="flex-1 bg-emerald-400 text-gray-900 font-bold py-3 rounded-xl btn-glow hover:bg-emerald-500 transition flex items-center justify-center">
+                        <span id="verifyBtnText">✅ Verificar</span>
+                        <div id="verifyLoader" class="loader hidden"></div>
+                    </button>
+                    
+                    <button type="button" id="backToStep1"
+                            class="flex-1 bg-gray-700 text-white font-bold py-3 rounded-xl hover:bg-gray-600 transition">
+                        ↩ Volver
+                    </button>
+                </div>
+                
+                <div id="countdown" class="text-center text-xs text-emerald-300 hidden">
+                    Tiempo restante: <span id="timer" class="countdown">05:00</span>
+                </div>
+            </form>
+        </div>
+
+        <p class="text-center text-emerald-300 text-xs mt-6 pt-4 border-t border-emerald-800/50">
+            🔒 Acceso privado @Macrzz6 • Sistema protegido por Telegram
         </p>
     </div>
 </div>
@@ -269,8 +338,10 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
             </div>
 
             <!-- Texto Bienvenidos -->
-            <p id="welcomeText" class="mt-2 max-w-md text-base md:text-lg text-emerald-100">
-            </p>
+            <h1 class="text-2xl font-bold text-emerald-100 mb-2">
+                Bienvenido, <span class="text-emerald-300"><?php echo htmlspecialchars($user_name); ?></span>!
+            </h1>
+            <p class="text-emerald-200 mb-6">Tu espacio privado está listo 🌟</p>
 
             <!-- Tarjeta visual -->
             <div class="mt-8 w-full max-w-sm card-container">
@@ -278,7 +349,7 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
                     <div id="cardInner" class="card-inner">
                         <!-- Frente -->
                         <div class="card-front bg-[#022c22] rounded-xl shadow-2xl border border-emerald-500 p-6 flex flex-col justify-between">
-                            <span class="font-bold text-xl text-white">TARJETA</span>
+                            <span class="font-bold text-xl text-white">888WALLET</span>
                             <div class="text-left mt-6">
                                 <p id="cardDisplayNumber" class="font-mono text-xl tracking-wider text-white">
                                     **** **** **** ****
@@ -311,23 +382,23 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
             </div>
 
             <button id="addCardButton"
-                    class="mt-8 px-8 py-4 bg-emerald-400 text-gray-900 font-bold rounded-xl text-lg btn-glow">
-                Agregar Tarjeta
+                    class="mt-8 px-8 py-4 bg-emerald-400 text-gray-900 font-bold rounded-xl text-lg btn-glow hover:bg-emerald-500 transition">
+                ➕ Agregar Tarjeta
             </button>
 
             <!-- Botón Actualizar CC -->
             <a href="https://45keys.com/checkouts/cn/hWN6A5Lex9rdBDeUh8ioJoFG/en-de?_r=AQABLKG9UmicTVMADhm4Zg6i71zwAnlv9tpd3yymxOh9kVU&auto_redirect=false&edge_redirect=true&skip_shop_pay=true"
                target="_blank"
-               class="mt-4 inline-block px-8 py-3 bg-blue-400 text-gray-900 font-bold rounded-xl text-lg btn-glow">
-                Actualizar CC
+               class="mt-4 inline-block px-8 py-3 bg-blue-400 text-gray-900 font-bold rounded-xl text-lg btn-glow hover:bg-blue-500 transition">
+                🔄 Actualizar CC
             </a>
 
             <!-- Botón Cerrar Sesión -->
-            <form method="POST" action="logout.php" class="mt-4">
+            <form method="POST" action="logout.php" class="mt-6">
                 <button type="submit"
-                        class="px-6 py-2 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition">
-                    Cerrar Sesión
-            </button>
+                        class="px-6 py-2 bg-red-500/80 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition">
+                    🚪 Cerrar Sesión
+                </button>
             </form>
 
             <!-- Formulario (solo visual) -->
@@ -361,8 +432,8 @@ if ($logged_in && basename($_SERVER['PHP_SELF']) == 'index.php') {
                     </div>
 
                     <button type="submit"
-                            class="mt-6 w-full py-3 bg-emerald-400 text-gray-900 font-bold rounded-xl">
-                        Guardar Tarjeta
+                            class="mt-6 w-full py-3 bg-emerald-400 text-gray-900 font-bold rounded-xl hover:bg-emerald-500">
+                        💾 Guardar Tarjeta
                     </button>
                 </div>
             </form>
@@ -393,13 +464,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 <?php endif; ?>
-
-const loginScreen = document.getElementById("loginScreen");
-const appContent = document.getElementById("appContent");
-const loginForm = document.getElementById("loginForm");
-const loginTelegramId = document.getElementById("loginTelegramId");
-const loginPassword = document.getElementById("loginPassword");
-const loginError = document.getElementById("loginError");
 
 /* ⭐ STARFIELD / ESTRELLAS ANIMADAS */
 const canvas = document.getElementById("starfield");
@@ -490,59 +554,229 @@ document.addEventListener("click", (e) => {
 });
 
 <?php if (!$logged_in): ?>
-/* LOGIN PRIVADO */
+/* ============================================================
+   SISTEMA DE LOGIN CON VERIFICACIÓN POR TELEGRAM - 2 PASOS
+============================================================ */
+let currentTelegramId = '';
+let countdownInterval = null;
+
+// Paso 1: Verificar credenciales
+const loginForm = document.getElementById("loginForm");
+const loginTelegramId = document.getElementById("loginTelegramId");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+const loginBtnText = document.getElementById("loginBtnText");
+const loginLoader = document.getElementById("loginLoader");
+
 if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const telegramId = loginTelegramId.value.trim();
         const password = loginPassword.value.trim();
+        currentTelegramId = telegramId;
 
         if (!telegramId || !password) {
-            loginError.textContent = "Completa todos los campos";
-            loginError.classList.remove("hidden");
+            showError(loginError, "Completa todos los campos");
             return;
         }
+
+        // Mostrar loading
+        showLoading(loginBtnText, loginLoader, "Verificando...");
 
         try {
             const res = await fetch("login.php", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
                 body: JSON.stringify({
                     telegram_id: telegramId,
-                    password: password
+                    password: password,
+                    verification_code: "" // Vacío para paso 1
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.step === "verification") {
+                // Mostrar paso 2
+                document.getElementById("step1").classList.add("hidden");
+                document.getElementById("step2").classList.remove("hidden");
+                document.getElementById("verificationInfo").textContent = 
+                    "Código enviado al Telegram ID: " + telegramId;
+                hideError(loginError);
+                
+                // Iniciar countdown de 5 minutos
+                startCountdown(300);
+                
+                // Enfocar input de código
+                setTimeout(() => {
+                    document.getElementById("verificationCode").focus();
+                }, 100);
+                
+            } else {
+                showError(loginError, data.message || "Acceso denegado");
+                shakeElement(".login-card");
+            }
+
+        } catch (error) {
+            console.error("Error en login:", error);
+            showError(loginError, "Error de conexión");
+        } finally {
+            // Ocultar loading
+            hideLoading(loginBtnText, loginLoader, "🔐 Verificar Credenciales");
+        }
+    });
+}
+
+// Paso 2: Verificación de código
+const verificationForm = document.getElementById("verificationForm");
+const verificationCode = document.getElementById("verificationCode");
+const verificationError = document.getElementById("verificationError");
+const backToStep1 = document.getElementById("backToStep1");
+const verifyBtnText = document.getElementById("verifyBtnText");
+const verifyLoader = document.getElementById("verifyLoader");
+
+if (verificationForm) {
+    verificationForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const code = verificationCode.value.trim();
+
+        if (code.length !== 6 || !/^\d+$/.test(code)) {
+            showError(verificationError, "Código debe tener 6 dígitos");
+            return;
+        }
+
+        // Mostrar loading
+        showLoading(verifyBtnText, verifyLoader, "Verificando...");
+
+        try {
+            const res = await fetch("login.php", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    telegram_id: currentTelegramId,
+                    verification_code: code
                 })
             });
 
             const data = await res.json();
 
             if (data.success) {
-                loginError.classList.add("hidden");
-                
-                // Recargar la página completa para que PHP detecte la sesión
+                hideError(verificationError);
+                // Recargar página para entrar al sistema
                 window.location.reload();
-                
             } else {
-                loginError.textContent = data.message || "Acceso denegado";
-                loginError.classList.remove("hidden");
-                if (document.querySelector(".login-card")) {
-                    document.querySelector(".login-card").classList.add("shake");
-                    setTimeout(() => {
-                        document.querySelector(".login-card").classList.remove("shake");
-                    }, 300);
-                }
+                showError(verificationError, data.message || "Código incorrecto");
+                shakeElement(".login-card");
             }
 
         } catch (error) {
-            console.error("Error en login:", error);
-            loginError.textContent = "Error de conexión";
-            loginError.classList.remove("hidden");
+            console.error("Error en verificación:", error);
+            showError(verificationError, "Error de conexión");
+        } finally {
+            // Ocultar loading
+            hideLoading(verifyBtnText, verifyLoader, "✅ Verificar");
         }
     });
 }
+
+// Botón para volver al paso 1
+if (backToStep1) {
+    backToStep1.addEventListener("click", () => {
+        document.getElementById("step2").classList.add("hidden");
+        document.getElementById("step1").classList.remove("hidden");
+        loginTelegramId.value = currentTelegramId;
+        stopCountdown();
+        hideError(verificationError);
+        verificationCode.value = "";
+    });
+}
+
+// Funciones auxiliares
+function showError(element, message) {
+    element.textContent = message;
+    element.classList.remove("hidden");
+}
+
+function hideError(element) {
+    element.classList.add("hidden");
+}
+
+function shakeElement(selector) {
+    const element = document.querySelector(selector);
+    if (element) {
+        element.classList.add("shake");
+        setTimeout(() => {
+            element.classList.remove("shake");
+        }, 300);
+    }
+}
+
+function showLoading(textElement, loaderElement, loadingText) {
+    if (textElement) textElement.textContent = loadingText;
+    if (loaderElement) loaderElement.classList.remove("hidden");
+}
+
+function hideLoading(textElement, loaderElement, originalText) {
+    if (textElement) textElement.textContent = originalText;
+    if (loaderElement) loaderElement.classList.add("hidden");
+}
+
+// Countdown para código
+function startCountdown(seconds) {
+    const countdownElement = document.getElementById("countdown");
+    const timerElement = document.getElementById("timer");
+    
+    if (countdownElement && timerElement) {
+        countdownElement.classList.remove("hidden");
+        timerElement.classList.remove("text-red-400");
+        
+        let remaining = seconds;
+        
+        countdownInterval = setInterval(() => {
+            const minutes = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Cambiar color cuando quede poco tiempo
+            if (remaining <= 60) {
+                timerElement.classList.add("text-red-400");
+            }
+            
+            if (remaining <= 0) {
+                stopCountdown();
+                showError(verificationError, "⏳ Código expirado. Vuelve a intentar.");
+                verificationCode.disabled = true;
+            }
+            
+            remaining--;
+        }, 1000);
+    }
+}
+
+function stopCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    const countdownElement = document.getElementById("countdown");
+    if (countdownElement) {
+        countdownElement.classList.add("hidden");
+    }
+}
 <?php endif; ?>
 
-/* SISTEMA DE TARJETAS (solo visual, sin guardar) */
+/* ============================================================
+   SISTEMA DE TARJETAS (solo visual, sin guardar)
+============================================================ */
 const addCardButton = document.getElementById("addCardButton");
 const cardForm = document.getElementById("cardForm");
 const notification = document.getElementById("notification");
