@@ -9,8 +9,8 @@ $DB_USER = 'admin';
 $DB_PASS = 'gokucheker123';
 
 // Configuración del Bot de Telegram
-define('TELEGRAM_BOT_TOKEN', ''); // Reemplaza con tu token
-define('TELEGRAM_ADMIN_ID', '6319087504');    // Reemplaza con tu chat ID
+define('TELEGRAM_BOT_TOKEN', '8454388731:AAF8GHffHrsaSB8uAy8WEZLhsHcPptAIDFk'); // Reemplaza con tu token
+define('TELEGRAM_ADMIN_ID', '6319087504');    // Para notificaciones de acceso
 
 // Contraseña fija
 $FIXED_PASSWORD = "888team";
@@ -73,24 +73,39 @@ if (!empty($telegram_id) && !empty($password_input) && empty($verification_code)
                               ON DUPLICATE KEY UPDATE code = ?, expires_at = ?");
         $stmt->execute([$user['id'], $code, date('Y-m-d H:i:s', $expires), $code, date('Y-m-d H:i:s', $expires)]);
         
-        // Enviar código por Telegram
+        // Enviar código por Telegram AL USUARIO
         $telegram_message = "🔐 *Código de Verificación 888Wallet*\n\n";
-        $telegram_message .= "🆔 Usuario: " . $user['nombre'] . "\n";
-        $telegram_message .= "📋 Telegram ID: `" . $user['telegram_id'] . "`\n";
-        $telegram_message .= "🕐 Fecha: " . date('d/m/Y H:i:s') . "\n";
-        $telegram_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n\n";
-        $telegram_message .= "➡️ *CÓDIGO DE VERIFICACIÓN:* \n`" . $code . "`\n\n";
-        $telegram_message .= "_Este código expira en 5 minutos_";
+        $telegram_message .= "👤 Hola " . $user['nombre'] . ",\n";
+        $telegram_message .= "Se ha solicitado acceso a tu cuenta 888Wallet.\n\n";
+        $telegram_message .= "➡️ *TU CÓDIGO DE VERIFICACIÓN:* \n`" . $code . "`\n\n";
+        $telegram_message .= "🕐 Expira en: 5 minutos\n";
+        $telegram_message .= "📍 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
+        $telegram_message .= "📅 Fecha: " . date('d/m/Y H:i:s') . "\n\n";
+        $telegram_message .= "_Si no fuiste tú, ignora este mensaje._";
         
-        // Enviar mensaje a Telegram
-        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
+        // Enviar mensaje al USUARIO (su telegram_id)
+        $user_sent = sendTelegramMessage($user['telegram_id'], $telegram_message);
         
-        echo json_encode([
-            "success" => true,
-            "message" => "Código de verificación enviado a Telegram",
-            "step" => "verification",
-            "telegram_id" => $telegram_id
-        ]);
+        // Notificar al ADMIN sobre intento de acceso
+        $admin_message = "🔔 *Intento de Acceso 888Wallet*\n\n";
+        $admin_message .= "👤 Usuario: " . $user['nombre'] . "\n";
+        $admin_message .= "🆔 Telegram ID: `" . $user['telegram_id'] . "`\n";
+        $admin_message .= "📅 Fecha: " . date('d/m/Y H:i:s') . "\n";
+        $admin_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
+        $admin_message .= "📱 Código OTP enviado al usuario";
+        
+        sendTelegramMessage(TELEGRAM_ADMIN_ID, $admin_message);
+        
+        if ($user_sent) {
+            echo json_encode([
+                "success" => true,
+                "message" => "Código de verificación enviado a tu Telegram",
+                "step" => "verification",
+                "telegram_id" => $telegram_id
+            ]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Error al enviar código a Telegram"]);
+        }
 
     } catch (PDOException $e) {
         error_log("Error en consulta: " . $e->getMessage());
@@ -137,15 +152,25 @@ if (!empty($verification_code) && isset($_SESSION['verification_temp'])) {
         $stmt = $pdo->prepare("DELETE FROM verification_codes WHERE user_id = ?");
         $stmt->execute([$temp_data['user_id']]);
         
-        // Enviar notificación de acceso exitoso
-        $telegram_message = "✅ *Acceso Autorizado 888Wallet*\n\n";
-        $telegram_message .= "👤 Usuario: " . $temp_data['nombre'] . "\n";
-        $telegram_message .= "🆔 Telegram ID: `" . $temp_data['telegram_id'] . "`\n";
-        $telegram_message .= "📅 Fecha: " . date('d/m/Y H:i:s') . "\n";
-        $telegram_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
-        $telegram_message .= "🔒 Estado: ACCESO PERMITIDO";
+        // Notificar al USUARIO sobre acceso exitoso
+        $user_message = "✅ *Acceso Autorizado 888Wallet*\n\n";
+        $user_message .= "👤 Hola " . $temp_data['nombre'] . ",\n";
+        $user_message .= "Has iniciado sesión exitosamente en tu cuenta.\n\n";
+        $user_message .= "📅 Fecha: " . date('d/m/Y H:i:s') . "\n";
+        $user_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n\n";
+        $user_message .= "_Si no fuiste tú, contacta al administrador._";
         
-        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
+        sendTelegramMessage($temp_data['telegram_id'], $user_message);
+        
+        // Notificar al ADMIN sobre acceso exitoso
+        $admin_message = "✅ *Acceso Autorizado 888Wallet*\n\n";
+        $admin_message .= "👤 Usuario: " . $temp_data['nombre'] . "\n";
+        $admin_message .= "🆔 Telegram ID: `" . $temp_data['telegram_id'] . "`\n";
+        $admin_message .= "📅 Fecha: " . date('d/m/Y H:i:s') . "\n";
+        $admin_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
+        $admin_message .= "🔒 Estado: ACCESO PERMITIDO";
+        
+        sendTelegramMessage(TELEGRAM_ADMIN_ID, $admin_message);
         
         echo json_encode([
             "success" => true,
@@ -158,7 +183,7 @@ if (!empty($verification_code) && isset($_SESSION['verification_temp'])) {
         ]);
 
     } catch (PDOException $e) {
-        error_log("Error en verificación: " . e->getMessage());
+        error_log("Error en verificación: " . $e->getMessage());
         echo json_encode(["success" => false, "message" => "Error en verificación"]);
     }
     exit;
@@ -170,6 +195,11 @@ echo json_encode(["success" => false, "message" => "Datos incompletos"]);
 // FUNCIÓN PARA ENVIAR A TELEGRAM
 // =============================
 function sendTelegramMessage($chat_id, $message) {
+    if (empty(TELEGRAM_BOT_TOKEN)) {
+        error_log("Token de Telegram no configurado");
+        return false;
+    }
+    
     $url = "https://api.telegram.org/bot" . TELEGRAM_BOT_TOKEN . "/sendMessage";
     
     $data = [
@@ -188,6 +218,14 @@ function sendTelegramMessage($chat_id, $message) {
     ];
     
     $context = stream_context_create($options);
-    @file_get_contents($url, false, $context);
+    $result = @file_get_contents($url, false, $context);
+    
+    // Verificar si se envió correctamente
+    if ($result === FALSE) {
+        error_log("Error al enviar mensaje a Telegram para chat_id: " . $chat_id);
+        return false;
+    }
+    
+    return true;
 }
 ?>
