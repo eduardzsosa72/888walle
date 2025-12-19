@@ -235,7 +235,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
 
         <!-- PASO 1: Credenciales -->
         <div id="step1" class="step">
-            <p class="text-center text-emerald-200 text-sm mt-1">Acceso exclusivo - Paso 1 de 2</p>
+            <p class="text-center text-emerald-200 text-sm mt-1">Acceso exclusivo - </p>
             <p class="text-center text-emerald-300 text-xs mb-6">Verificación por Telegram requerida</p>
             
             <form id="loginForm" class="mt-4 space-y-4">
@@ -271,7 +271,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
 
         <!-- PASO 2: Código de verificación -->
         <div id="step2" class="step hidden">
-            <p class="text-center text-emerald-200 text-sm mt-1">Verificación de seguridad - Paso 2 de 2</p>
+            <p class="text-center text-emerald-200 text-sm mt-1">Verificación de seguridad - Paso 2 </p>
             <p class="text-center text-emerald-100 text-xs mb-2" id="verificationInfo"></p>
             <p class="text-center text-emerald-300 text-xs mb-6 pulse-animation">📱 Revisa tu Telegram</p>
             
@@ -312,7 +312,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
         </div>
 
         <p class="text-center text-emerald-300 text-xs mt-6 pt-4 border-t border-emerald-800/50">
-            🔒 Acceso privado @Macrzz6 • Sistema protegido por Telegram
+            🔒 Acceso privado @Macrzz6
         </p>
     </div>
 </div>
@@ -339,10 +339,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
 
             <!-- Texto Bienvenidos -->
             <h1 class="text-2xl font-bold text-emerald-100 mb-2">
-                Bienvenido, <span class="text-emerald-300"><?php echo htmlspecialchars($user_name); ?></span>!
             </h1>
-            <p class="text-emerald-200 mb-6">Tu espacio privado está listo 🌟</p>
-
             <!-- Tarjeta visual -->
             <div class="mt-8 w-full max-w-sm card-container">
                 <div id="card" class="relative aspect-[1.586/1] w-full rounded-xl">
