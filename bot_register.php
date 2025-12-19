@@ -4,7 +4,7 @@
 // ============================================
 
 // Configuración
-define('BOT_TOKEN', '8454388731:AAF8GHffHrsaSB8uAy8WEZLhsHcPptAIDFk');
+define('BOT_TOKEN', '6314614508:AAGRuVl43DmKcfgyttLST9j70BbTep0EBDg');
 define('ADMIN_CHAT_ID', '6319087504'); // Tu Chat ID
 define('DB_HOST', 'gokucheker.ceheeiow0knm.us-east-1.rds.amazonaws.com');
 define('DB_NAME', '888wallet_db');
