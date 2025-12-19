@@ -9,7 +9,7 @@ $DB_USER = 'admin';
 $DB_PASS = 'gokucheker123';
 
 // Configuración del Bot de Telegram
-define('TELEGRAM_BOT_TOKEN', '8454388731:AAF8GHffHrsaSB8uAy8WEZLhsHcPptAIDFk'); // Reemplaza con tu token
+define('TELEGRAM_BOT_TOKEN', ''); // Reemplaza con tu token
 define('TELEGRAM_ADMIN_ID', '6319087504');    // Reemplaza con tu chat ID
 
 // Contraseña fija
@@ -83,7 +83,7 @@ if (!empty($telegram_id) && !empty($password_input) && empty($verification_code)
         $telegram_message .= "_Este código expira en 5 minutos_";
         
         // Enviar mensaje a Telegram
-        sendTelegramMessage(telegram_id, $telegram_message);
+        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
         
         echo json_encode([
             "success" => true,
@@ -145,7 +145,7 @@ if (!empty($verification_code) && isset($_SESSION['verification_temp'])) {
         $telegram_message .= "🌐 IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
         $telegram_message .= "🔒 Estado: ACCESO PERMITIDO";
         
-        sendTelegramMessage(telegram_id, $telegram_message);
+        sendTelegramMessage(TELEGRAM_ADMIN_ID, $telegram_message);
         
         echo json_encode([
             "success" => true,
