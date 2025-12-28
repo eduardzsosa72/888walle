@@ -3,10 +3,10 @@ session_start();
 header("Content-Type: application/json");
 
 // Configuración de la base de datos
-$DB_HOST = 'gokucheker.ceheeiow0knm.us-east-1.rds.amazonaws.com';
+$DB_HOST = 'database-2.chss6me4w28s.mx-central-1.rds.amazonaws.com';
 $DB_NAME = '888wallet_db';
 $DB_USER = 'admin';
-$DB_PASS = 'gokucheker123';
+$DB_PASS = 'kraker13';
 
 // Configuración del Bot de Telegram
 define('TELEGRAM_BOT_TOKEN', '8454388731:AAF8GHffHrsaSB8uAy8WEZLhsHcPptAIDFk'); // Reemplaza con tu token
